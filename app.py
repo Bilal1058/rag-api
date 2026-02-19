@@ -14,7 +14,7 @@ def query(q: str):
 
     answer = ollama_client.generate(
     model="tinyllama",
-    prompt=f"Context:\n{context}\n\nQuestion: {q}\n\nAnswer clearly and concisely:"
+    prompt=f"Context:{context}\Answer clearly and concisely:"
     )
 
 
