@@ -122,4 +122,64 @@ In this project extension, I'm adding an endpoint through where others(users/app
 
 The /add endpoint allows me to add any information to my knowledge base. This is useful because  now i don't have to maually add info to my knowledge base also others can also add info to my knowledge base.
 
+# Containerize a RAG API with Docker
+
+## Installing Docker Desktop
+
+### Docker Desktop setup
+
+Docker Desktop is a tool which containerize my application.I installed it because to containerize my app. Containerization will help my project by using it on any other device without installing the exact dependencies.
+
+### Docker verification
+
+I verified Docker is working by docker run hello-world .The hello-world container proves that docker can download images from internet and create containers also.
+
+![Image](http://learn.nextwork.org/radiant_purple_playful_oriental_melon/uploads/ai-devops-docker_i9j0k1l2)
+
 ---
+
+## Creating the Dockerfile
+
+In this step, I'm building a RAG API. RAG stands for Retreival ,Augmented and Generation. I'm creating files like embed.py,app.py,/db folder,k8s.txt and venv script.
+
+### How the Dockerfile works
+
+A Dockerfile is a set of instructions that tells Docker how to make/build a container image. The key instructions in my Dockerfile are FROM,RUN,COPY,CMD,WORKDIR. FROM tells Docker the Base image.COPY is used for copying file from system to conatiner. RUN executes commands like downloading dependencies etc. CMD defines which command to run when the container starts.
+
+### Containerized API test results
+
+Testing the API after containerization proved that i can now use simply run docker image and use it. The difference between running locally and in Docker is u have all dependencies and exact version of library/technologies to run app/api whereas in docker u only need docker and run that image and use it. Containerization helps because it bundles exact version to run application and make it portable and scaling.
+
+![Image](http://learn.nextwork.org/radiant_purple_playful_oriental_melon/uploads/ai-devops-docker_o1p2q3r4)
+
+---
+
+## Building and Running the Container
+
+### Docker image build complete
+
+Building a Docker image involves FROM(selecting base like python 3.11 in my case),WORKDIR(the working directory for docker image like /app),RUN(downloads dependencies like fastapi etc),COPY(copy the code file like embed.py and others to docker image),CMD(which command to run when docker image started). I verified my Docker image was built successfully by this command to list all docker images "docker images | Select-String rag-app
+".This confirms that my API is now containerized because i saw an entry of rag-app in docker images.
+
+![Image](http://learn.nextwork.org/radiant_purple_playful_oriental_melon/uploads/ai-devops-docker_p9q0r1s2)
+
+![Image](http://learn.nextwork.org/radiant_purple_playful_oriental_melon/uploads/ai-devops-docker_x7y8z9a0)
+
+---
+
+## Pushing to Docker Hub
+
+In this project extension, I'm pushing to Docker Hub. Docker Hub is like a github for container where i can push my image and other/me(on other machine) can pull and use it. I'm doing this because to be accessible by my team and me(on other machine) to pull and test it on other systems.
+
+### Docker Hub push complete
+
+I pushed to Docker Hub by docker push bilal888/rag-app. Docker Hub is useful because it's a place where i and other can share and use docker images. The advantage of pushing to a registry is to make app prtable and accessible.
+
+![Image](http://learn.nextwork.org/radiant_purple_playful_oriental_melon/uploads/ai-devops-docker_m5n6o7p8)
+
+### Pulling from Docker Hub
+
+Pulling an image from Docker Hub means we can download and use it. When I ran docker pull, Docker pulled the image in my system. The difference between building locally and pulling from Docker Hub is building locally requires all exact version of dependencies whereas docker image doesn't requires any pre-dependencies all are already packed and ready-to-use.
+
+![Image](http://learn.nextwork.org/radiant_purple_playful_oriental_melon/uploads/ai-devops-docker_f5g6h7i8)
+
