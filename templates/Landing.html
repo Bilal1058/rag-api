@@ -25,9 +25,9 @@
       color: var(--text);
       min-height: 100vh;
       display: flex;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
-      padding: 28px;
+      padding: 32px 20px 80px;
       position: relative;
       overflow: hidden;
     }
@@ -57,32 +57,76 @@
     }
     .shell {
       position: relative;
-      width: min(1200px, 100%);
+      width: min(1100px, 100%);
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
     }
-    .header { text-align: center; margin-bottom: 18px; }
+    .header { text-align: center; }
     .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: 0.4px; }
     .pulse { width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(120deg, var(--accent), var(--accent-2)); box-shadow: 0 0 14px rgba(124, 242, 212, 0.8); animation: pulse 2.4s ease-in-out infinite; }
     @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 12px rgba(124, 242, 212, 0.7); } 50% { transform: scale(1.1); box-shadow: 0 0 20px rgba(77, 161, 255, 0.7); } 100% { transform: scale(1); box-shadow: 0 0 12px rgba(124, 242, 212, 0.7); } }
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 24px; box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4); backdrop-filter: blur(12px); max-width: 720px; margin: 0 auto; }
-    h1 { margin: 0; font-size: 26px; letter-spacing: -0.3px; text-align: center; }
-    .muted { color: var(--muted); }
-    .panel { background: var(--glass); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
-    label { display: block; margin-bottom: 6px; font-weight: 600; }
-    textarea {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
+    .answer {
+      background: var(--glass);
       border: 1px solid var(--border);
-      background: rgba(255, 255, 255, 0.02);
+      border-radius: 20px;
+      padding: 26px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: 20px;
+      line-height: 1.6;
+      color: var(--text);
+      backdrop-filter: blur(12px);
+    }
+    .answer.empty { color: var(--muted); }
+    .input-bar {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(820px, 100% - 32px);
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 12px 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(14px);
+    }
+    .input-bar textarea {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
       color: var(--text);
       font-size: 15px;
-      min-height: 180px;
-      resize: vertical;
+      resize: none;
+      max-height: 140px;
+      padding: 8px 4px;
+      line-height: 1.4;
     }
-    button { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #02060d; font-weight: 700; cursor: pointer; font-size: 15px; box-shadow: 0 12px 40px rgba(77, 161, 255, 0.35); transition: transform 0.1s ease, box-shadow 0.2s ease; }
-    button:hover { transform: translateY(-1px); box-shadow: 0 16px 45px rgba(124, 242, 212, 0.35); }
-    .log { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 12px; padding: 12px; font-family: "JetBrains Mono", monospace; color: var(--muted); min-height: 200px; white-space: pre-wrap; overflow: auto; }
+    .send {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #02060d;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 12px 32px rgba(77, 161, 255, 0.35);
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+      white-space: nowrap;
+    }
+    .send:hover { transform: translateY(-1px); box-shadow: 0 16px 40px rgba(124, 242, 212, 0.35); }
+    .status { text-align: center; color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
@@ -92,34 +136,29 @@
     <div class="header">
       <div class="brand"><span class="pulse"></span>RAG Prompt</div>
     </div>
-    <div class="card">
-      <div class="panel">
-        <h1>Ask your question</h1>
-        <p class="muted" style="text-align:center;">Type a prompt and view the model response with context.</p>
-        <div style="margin-top:14px;">
-          <label for="query">Prompt</label>
-          <textarea id="query" placeholder="Ask your question...">What is Kubernetes?</textarea>
-        </div>
-        <div style="margin-top:14px;">
-          <button id="send">Send</button>
-        </div>
-        <div class="panel" style="margin-top:14px;">
-          <div class="log" id="responseLog">Waiting for request...</div>
-        </div>
-      </div>
-    </div>
+    <div class="answer empty" id="response">Ask something to see the answer here.</div>
+    <div class="status" id="status">Idle</div>
+  </div>
+  <div class="input-bar">
+    <textarea id="query" placeholder="Ask anything..." rows="1">What is Kubernetes?</textarea>
+    <button class="send" id="send">Send</button>
   </div>
 
   <script>
-    const logEl = document.getElementById("responseLog");
+    const logEl = document.getElementById("response");
+    const statusEl = document.getElementById("status");
+    const inputEl = document.getElementById("query");
 
     async function sendQuery() {
       const query = document.getElementById("query").value.trim();
       if (!query) {
         logEl.textContent = "Enter a query first.";
+        logEl.classList.remove("empty");
         return;
       }
       logEl.textContent = "Awaiting response...";
+      logEl.classList.remove("empty");
+      statusEl.textContent = "Sending";
       try {
         const url = `/query?q=${encodeURIComponent(query)}`;
         const res = await fetch(url, { method: "POST" });
@@ -130,14 +169,19 @@
         } catch {
           logEl.textContent = text;
         }
+        statusEl.textContent = "Done";
       } catch (err) {
         logEl.textContent = "Request failed: " + err.message;
+        statusEl.textContent = "Error";
       }
     }
 
     document.getElementById("send").addEventListener("click", sendQuery);
-    document.getElementById("query").addEventListener("keydown", (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") sendQuery();
+    inputEl.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        e.preventDefault();
+        sendQuery();
+      }
     });
   </script>
 </body>
