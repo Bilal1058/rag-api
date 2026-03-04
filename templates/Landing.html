@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nextwork RAG Console</title>
+  <style>
+    :root {
+      --bg: #0c0f14;
+      --panel: #111620;
+      --accent: #5be3c2;
+      --muted: #8ba1b0;
+      --text: #f5f7fb;
+      --border: #1c2533;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: "Space Grotesk", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 20% 20%, #142031 0, #0c0f14 40%),
+                  radial-gradient(circle at 80% 0%, #1a273a 0, #0c0f14 35%),
+                  #0c0f14;
+      color: var(--text); min-height: 100vh;
+      display: flex; justify-content: center; align-items: center; padding: 32px;
+    }
+    .card {
+      width: min(1100px, 100%); background: var(--panel);
+      border: 1px solid var(--border); border-radius: 18px;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.35); padding: 28px;
+      display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;
+    }
+    @media (max-width: 900px) { .card { grid-template-columns: 1fr; } }
+    h1 { margin: 0 0 10px; letter-spacing: -0.5px; }
+    .muted { color: var(--muted); }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(91, 227, 194, 0.08); color: var(--accent);
+      border: 1px solid rgba(91, 227, 194, 0.25);
+      border-radius: 999px; padding: 8px 12px; font-size: 13px;
+    }
+    .section { border: 1px solid var(--border); border-radius: 14px; padding: 16px; background: #0e131c; }
+    label { display: block; margin-bottom: 6px; font-weight: 600; }
+    input, textarea, select {
+      width: 100%; padding: 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: #0b1018; color: var(--text);
+      font-size: 14px;
+    }
+    textarea { min-height: 160px; resize: vertical; }
+    button {
+      width: 100%; padding: 14px; border-radius: 12px; border: none;
+      background: linear-gradient(120deg, var(--accent), #43c3ff);
+      color: #041017; font-weight: 700; cursor: pointer; font-size: 15px;
+      box-shadow: 0 10px 30px rgba(67,195,255,0.25);
+    }
+    button:hover { filter: brightness(1.05); }
+    .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 12px; }
+    .log {
+      background: #0b1018; border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px; font-family: "JetBrains Mono", monospace;
+      color: var(--muted); min-height: 160px; overflow: auto; white-space: pre-wrap;
+    }
+    .badge { padding: 6px 10px; background: #132033; border-radius: 10px; color: var(--muted); }
+    .status { display: flex; gap: 8px; align-items: center; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #2fd58a; box-shadow: 0 0 10px #2fd58a; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div>
+      <div class="pill">Nextwork RAG API · Console</div>
+      <h1>Retrieval-Augmented Interface</h1>
+      <p class="muted">Send queries, inspect responses, and tweak parameters before integrating.</p>
+
+      <div class="section" style="margin-top:16px;">
+        <div class="row">
+          <div>
+            <label for="endpoint">Endpoint</label>
+            <input id="endpoint" value="/query" />
+          </div>
+          <div>
+            <label for="temperature">Temperature</label>
+            <select id="temperature">
+              <option value="0.0">0.0 (strict)</option>
+              <option value="0.3" selected>0.3</option>
+              <option value="0.7">0.7</option>
+              <option value="1.0">1.0</option>
+            </select>
+          </div>
+          <div>
+            <label for="topk">Top-K</label>
+            <input id="topk" type="number" min="1" max="50" value="5" />
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <label for="query">Query</label>
+          <textarea id="query" placeholder="Ask something your documents can answer..."></textarea>
+        </div>
+        <div style="margin-top:12px;">
+          <button id="send">Send to RAG</button>
+        </div>
+      </div>
+
+      <div class="section" style="margin-top:16px;">
+        <div class="status">
+          <span class="dot"></span><span class="badge">Live Preview</span>
+          <span class="muted" id="latency">Waiting…</span>
+        </div>
+        <div class="log" id="responseLog">Response will appear here.</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section">
+        <label>Context Sources</label>
+        <p class="muted" style="margin:6px 0 12px;">How results are assembled</p>
+        <div class="row">
+          <div class="badge">Embeddings</div>
+          <div class="badge">Vector Search</div>
+          <div class="badge">LLM Completion</div>
+          <div class="badge">Citations</div>
+        </div>
+      </div>
+      <div class="section" style="margin-top:16px;">
+        <label>Console Tips</label>
+        <ul class="muted" style="padding-left:18px; line-height:1.5;">
+          <li>Adjust temperature for precision vs. creativity.</li>
+          <li>Set Top-K to control retrieved chunks.</li>
+          <li>Use this page before wiring frontend calls.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function sendQuery() {
+      const endpoint = document.getElementById("endpoint").value || "/query";
+      const temperature = parseFloat(document.getElementById("temperature").value);
+      const topk = parseInt(document.getElementById("topk").value, 10) || 5;
+      const query = document.getElementById("query").value.trim();
+      const logEl = document.getElementById("responseLog");
+      const latencyEl = document.getElementById("latency");
+
+      if (!query) {
+        logEl.textContent = "Enter a query first.";
+        return;
+      }
+
+      const payload = { question: query, temperature, top_k: topk };
+      const started = performance.now();
+      latencyEl.textContent = "Sending…";
+      logEl.textContent = "Awaiting response...";
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const text = await res.text();
+        const elapsed = Math.round(performance.now() - started);
+        latencyEl.textContent = `~${elapsed} ms`;
+        try {
+          const json = JSON.parse(text);
+          logEl.textContent = JSON.stringify(json, null, 2);
+        } catch {
+          logEl.textContent = text;
+        }
+      } catch (err) {
+        latencyEl.textContent = "Error";
+        logEl.textContent = "Request failed: " + err.message;
+      }
+    }
+
+    document.getElementById("send").addEventListener("click", sendQuery);
+    document.getElementById("query").addEventListener("keydown", (e) => {
+      if (e.metaKey && e.key === "Enter" || e.ctrlKey && e.key === "Enter") sendQuery();
+    });
+  </script>
+</body>
+</html>

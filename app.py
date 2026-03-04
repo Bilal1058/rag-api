@@ -1,15 +1,20 @@
+from fastapi import Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI
 import chromadb
 import ollama
+
+templates = Jinja2Templates(directory="templates")
 
 app = FastAPI()
 chroma = chromadb.PersistentClient(path="./db")
 collection = chroma.get_or_create_collection("docs")
 ollama_client = ollama.Client(host="http://host.docker.internal:11434")
 
-@app.get("/")
-def index():
-    return {"status": "ok", "message": "RAG API is running"}
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request):
+    return templates.TemplateResponse("Landing.html", {"request": request})
 
 @app.post("/query")
 def query(q: str):
